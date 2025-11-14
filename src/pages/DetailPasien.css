@@ -1,0 +1,119 @@
+.detail-pasien {
+  width: 100%;
+}
+
+.not-found {
+  background: white;
+  border-radius: 12px;
+  padding: 48px;
+  text-align: center;
+  font-size: 18px;
+  color: #6b7280;
+}
+
+.detail-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-card,
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.info-card h2,
+.chart-card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
+}
+
+.immunization-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.immunization-item {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge.selesai {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.terjadwal {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.milestone-item {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.milestone-item.completed {
+  background-color: #10b981;
+}
+
+.milestone-item.pending {
+  background-color: #d1d5db;
+}
+
+@media (max-width: 1024px) {
+  .detail-content {
+    grid-template-columns: 1fr;
+  }
+}
