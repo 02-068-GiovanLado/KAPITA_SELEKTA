@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPatientsByCategory } from '../data/mockData';
+import api from '../services/api';
 import './MonitoringDewasa.css';
 
 function MonitoringDewasa() {
-  const dewasaPatients = getPatientsByCategory('Dewasa');
+  const [dewasaPatients, setDewasaPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await api.getPatients('Dewasa');
+        setDewasaPatients(data);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="monitoring-dewasa"><div className="loading">Loading...</div></div>;
 
   return (
     <div className="monitoring-dewasa">
@@ -29,14 +46,14 @@ function MonitoringDewasa() {
               <tr key={patient.id}>
                 <td>
                   <div className="patient-name">
-                    <strong>{patient.nama}</strong>
-                    <span className="patient-age">{patient.usia}</span>
+                    <strong>{patient.name}</strong>
+                    <span className="patient-age">{patient.age}</span>
                   </div>
                 </td>
-                <td>{patient.kategori}</td>
+                <td>{patient.category}</td>
                 <td>
-                  <span className={`status-badge ${patient.statusKesehatan.toLowerCase().replace(' ', '-')}`}>
-                    {patient.statusKesehatan}
+                  <span className={`status-badge ${patient.status?.toLowerCase().replace(' ', '-') || 'stabil'}`}>
+                    {patient.status || 'N/A'}
                   </span>
                 </td>
                 <td>

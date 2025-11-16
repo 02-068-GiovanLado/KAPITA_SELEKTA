@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { patientsData } from '../data/mockData';
+import api from '../services/api';
 import './SemuaPasien.css';
 
 function SemuaPasien() {
   const [activeTab, setActiveTab] = useState('Semua');
+  const [allPatients, setAllPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await api.getPatients();
+        setAllPatients(data);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const filteredPatients = activeTab === 'Semua' 
-    ? patientsData 
-    : patientsData.filter(p => p.kategori === activeTab);
+    ? allPatients 
+    : allPatients.filter(p => p.category === activeTab);
+
+  if (loading) return <div className="semua-pasien"><div className="loading">Loading...</div></div>;
 
   return (
     <div className="semua-pasien">
@@ -60,14 +78,14 @@ function SemuaPasien() {
               <tr key={patient.id}>
                 <td>
                   <div className="patient-name">
-                    <strong>{patient.nama}</strong>
-                    <span className="patient-age">{patient.usia}</span>
+                    <strong>{patient.name}</strong>
+                    <span className="patient-age">{patient.age}</span>
                   </div>
                 </td>
-                <td>{patient.kategori}</td>
+                <td>{patient.category}</td>
                 <td>
-                  <span className={`status-badge ${patient.statusKesehatan.toLowerCase().replace(' ', '-')}`}>
-                    {patient.statusKesehatan}
+                  <span className={`status-badge ${patient.status?.toLowerCase().replace(' ', '-') || 'stabil'}`}>
+                    {patient.status || 'N/A'}
                   </span>
                 </td>
                 <td>

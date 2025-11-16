@@ -1,12 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { getPatientById } from '../data/mockData';
+import api from '../services/api';
 import './DetailPasien.css';
 
 function DetailPasien() {
   const { id } = useParams();
-  const patient = getPatientById(id);
+  const [patient, setPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await api.getPatientById(id);
+        setPatient(data);
+      } catch (error) {
+        console.error('Error fetching patient:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="detail-pasien">
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
 
   if (!patient) {
     return (
@@ -19,8 +42,19 @@ function DetailPasien() {
     );
   }
 
-  const isBayi = patient.kategori === 'Bayi';
-  const isLansia = patient.kategori === 'Lansia';
+  const isBayi = patient.category === 'Bayi';
+  const isLansia = patient.category === 'Lansia';
+  
+  // Prepare chart data from checkups
+  const chartData = patient.Checkups?.map(checkup => ({
+    date: new Date(checkup.date).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
+    weight: checkup.weight,
+    height: checkup.height,
+    bloodPressureSys: checkup.blood_pressure ? parseInt(checkup.blood_pressure.split('/')[0]) : null,
+    bloodSugar: checkup.blood_sugar
+  })) || [];
+  
+  const lastCheckup = patient.Checkups?.[0] || {};
 
   return (
     <div className="detail-pasien">
@@ -36,26 +70,26 @@ function DetailPasien() {
             <div className="info-grid">
               <div className="info-item">
                 <span className="info-label">Nama</span>
-                <span className="info-value">{patient.nama}</span>
+                <span className="info-value">{patient.name}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Usia</span>
-                <span className="info-value">{patient.usia}</span>
+                <span className="info-value">{patient.age}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Jenis Kelamin</span>
-                <span className="info-value">{patient.jenisKelamin}</span>
+                <span className="info-value">{patient.gender}</span>
               </div>
-              {isBayi && patient.wali && (
+              {isBayi && patient.guardian_name && (
                 <div className="info-item">
                   <span className="info-label">Wali</span>
-                  <span className="info-value">{patient.wali}</span>
+                  <span className="info-value">{patient.guardian_name}</span>
                 </div>
               )}
-              {!isBayi && patient.NIK && (
+              {!isBayi && patient.nik && (
                 <div className="info-item">
                   <span className="info-label">NIK</span>
-                  <span className="info-value">{patient.NIK}</span>
+                  <span className="info-value">{patient.nik}</span>
                 </div>
               )}
             </div>
@@ -66,15 +100,36 @@ function DetailPasien() {
             <div className="info-grid">
               <div className="info-item">
                 <span className="info-label">Tanggal</span>
-                <span className="info-value">{patient.tanggalPemeriksaan}</span>
+                <span className="info-value">
+                  {lastCheckup.date ? new Date(lastCheckup.date).toLocaleDateString('id-ID') : 'N/A'}
+                </span>
               </div>
               <div className="info-item">
                 <span className="info-label">Berat Badan</span>
-                <span className="info-value">{patient.beratBadan}</span>
+                <span className="info-value">{lastCheckup.weight ? `${lastCheckup.weight} kg` : 'N/A'}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Tinggi Badan</span>
-                <span className="info-value">{patient.tinggiBadan}</span>
+                <span className="info-value">{lastCheckup.height ? `${lastCheckup.height} cm` : 'N/A'}</span>
+              </div>
+              {isBayi && (
+                <div className="info-item">
+                  <span className="info-label">Lingkar Kepala</span>
+                  <span className="info-value">{lastCheckup.head_circumference ? `${lastCheckup.head_circumference} cm` : 'N/A'}</span>
+                </div>
+              )}
+              {!isBayi && (
+                <>
+                  <div className="info-item">
+                    <span className="info-label">Tekanan Darah</span>
+                    <span className="info-value">{lastCheckup.blood_pressure || 'N/A'}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Gula Darah</span>
+                    <span className="info-value">{lastCheckup.blood_sugar ? `${lastCheckup.blood_sugar} mg/dL` : 'N/A'}</span>
+                  </div>
+                </>
+              )}
               </div>
               {isBayi && patient.lingkarKepala && (
                 <div className="info-item">

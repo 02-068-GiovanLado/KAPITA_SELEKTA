@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
+const { startAutoSync } = require('./services/syncScheduler');
 require('dotenv').config();
 
 const app = express();
@@ -89,6 +90,9 @@ const startServer = async () => {
       console.log(`  GET  http://localhost:${PORT}/api/patients/:id`);
       console.log(`  POST http://localhost:${PORT}/api/patients`);
       console.log('');
+      
+      // Start auto-sync scheduler
+      startAutoSync();
     });
   } catch (error) {
     console.error('❌ Unable to start server:', error);
