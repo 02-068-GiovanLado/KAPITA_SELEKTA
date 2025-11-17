@@ -40,6 +40,46 @@ class ApiService {
   }
 
   /**
+   * Helper method for PUT requests
+   */
+  async put(endpoint, data) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error putting to ${endpoint}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper method for DELETE requests
+   */
+  async delete(endpoint) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error deleting ${endpoint}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Get dashboard statistics
    * GET /api/stats
    */
@@ -82,6 +122,38 @@ class ApiService {
   async createPatient(patientData) {
     return this.post('/patients', patientData);
   }
+  /**
+   * Update patient
+   * PUT /api/patients/:id
+   */
+  async updatePatient(id, data) {
+    return this.put(`/patients/${id}`, data);
+  }
+
+  /**
+   * Delete patient
+   * DELETE /api/patients/:id
+   */
+  async deletePatient(id) {
+    return this.delete(`/patients/${id}`);
+  }
+
+  /**
+   * Update checkup
+   * PUT /api/checkups/:id
+   */
+  async updateCheckup(id, data) {
+    return this.put(`/checkups/${id}`, data);
+  }
+
+  /**
+   * Update vitamin
+   * PUT /api/vitamins/:id
+   */
+  async updateVitamin(id, data) {
+    return this.put(`/vitamins/${id}`, data);
+  }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;

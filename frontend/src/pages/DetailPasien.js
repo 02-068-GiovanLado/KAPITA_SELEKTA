@@ -43,7 +43,6 @@ function DetailPasien() {
   }
 
   const isBayi = patient.category === 'Bayi';
-  const isLansia = patient.category === 'Lansia';
   
   // Sort checkups by date (oldest to newest for chart)
   const sortedCheckups = patient.checkups ? [...patient.checkups].sort((a, b) => 
@@ -75,21 +74,45 @@ function DetailPasien() {
             <h2>Informasi Pasien</h2>
             <div className="info-grid">
               <div className="info-item">
-                <span className="info-label">Nama</span>
+                <span className="info-label">Nama {isBayi ? 'Anak' : ''}</span>
                 <span className="info-value">{patient.name}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Usia</span>
-                <span className="info-value">{patient.age}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Jenis Kelamin</span>
                 <span className="info-value">{patient.gender}</span>
               </div>
+              {isBayi && patient.birth_date && (
+                <div className="info-item">
+                  <span className="info-label">Tanggal Lahir</span>
+                  <span className="info-value">{new Date(patient.birth_date).toLocaleDateString('id-ID')}</span>
+                </div>
+              )}
+              <div className="info-item">
+                <span className="info-label">Usia</span>
+                <span className="info-value">{patient.age}</span>
+              </div>
               {isBayi && patient.guardian_name && (
                 <div className="info-item">
-                  <span className="info-label">Wali</span>
+                  <span className="info-label">Nama Orang Tua</span>
                   <span className="info-value">{patient.guardian_name}</span>
+                </div>
+              )}
+              {isBayi && patient.mother_nik && (
+                <div className="info-item">
+                  <span className="info-label">NIK Ibu</span>
+                  <span className="info-value">{patient.mother_nik}</span>
+                </div>
+              )}
+              {isBayi && patient.child_nik && (
+                <div className="info-item">
+                  <span className="info-label">NIK Anak</span>
+                  <span className="info-value">{patient.child_nik}</span>
+                </div>
+              )}
+              {isBayi && patient.family_card_number && (
+                <div className="info-item">
+                  <span className="info-label">No Kartu Keluarga</span>
+                  <span className="info-value">{patient.family_card_number}</span>
                 </div>
               )}
               {!isBayi && patient.nik && (
@@ -182,61 +205,21 @@ function DetailPasien() {
             </div>
           )}
 
-          {isLansia && chartData.length > 0 && (
-            <div className="chart-card">
-              <h2>Tren Kesehatan Lansia</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="bloodPressureSys" stroke="#ef4444" name="Tekanan Darah" strokeWidth={2} />
-                  <Line type="monotone" dataKey="bloodSugar" stroke="#eab308" name="Gula Darah (mg/dL)" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {isBayi && patient.immunizations && patient.immunizations.length > 0 && (
+          {isBayi && patient.vitamins && patient.vitamins.length > 0 && (
             <div className="info-card">
-              <h2>Status Imunisasi</h2>
+              <h2>Status Vitamin</h2>
               <div className="immunization-list">
-                {patient.immunizations.map((immunization) => (
-                  <div key={immunization.id} className="immunization-item">
+                {patient.vitamins.map((vitamin) => (
+                  <div key={vitamin.id} className="immunization-item">
                     <div className="immunization-info">
-                      <span className="immunization-name">{immunization.vaccine_name}</span>
+                      <span className="immunization-name">{vitamin.vitamin_name}</span>
                       <span className="immunization-date">
-                        {new Date(immunization.date).toLocaleDateString('id-ID')}
+                        {vitamin.date ? new Date(vitamin.date).toLocaleDateString('id-ID') : 'Belum terjadwal'}
                       </span>
                     </div>
-                    <span className={`immunization-status ${immunization.status.toLowerCase()}`}>
-                      {immunization.status}
+                    <span className={`immunization-status ${vitamin.status.toLowerCase()}`}>
+                      {vitamin.status}
                     </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {isBayi && patient.milestones && patient.milestones.length > 0 && (
-            <div className="info-card">
-              <h2>Milestone Perkembangan</h2>
-              <div className="milestone-list">
-                {patient.milestones.map((milestone) => (
-                  <div key={milestone.id} className={`milestone-item ${milestone.achieved ? 'completed' : 'pending'}`}>
-                    <div className="milestone-icon">
-                      {milestone.achieved ? '✓' : '○'}
-                    </div>
-                    <div className="milestone-info">
-                      <span className="milestone-name">{milestone.milestone_name}</span>
-                      {milestone.achieved && milestone.date && (
-                        <span className="milestone-date">
-                          {new Date(milestone.date).toLocaleDateString('id-ID')}
-                        </span>
-                      )}
-                    </div>
                   </div>
                 ))}
               </div>

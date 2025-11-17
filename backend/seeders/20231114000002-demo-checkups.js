@@ -42,37 +42,6 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date()
       },
-      // Bambang Hartono (Lansia) - 3 checkups
-      {
-        patient_id: 3,
-        date: new Date('2023-07-18'),
-        weight: 67.0,
-        height: 165.0,
-        blood_pressure: '165/110',
-        blood_sugar: 220,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        patient_id: 3,
-        date: new Date('2023-08-18'),
-        weight: 67.0,
-        height: 165.0,
-        blood_pressure: '165/105',
-        blood_sugar: 215,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        patient_id: 3,
-        date: new Date('2023-10-18'),
-        weight: 67.0,
-        height: 165.0,
-        blood_pressure: '165/100',
-        blood_sugar: 210,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
       // Putri Ayu (Bayi)
       {
         patient_id: 4,
@@ -91,17 +60,6 @@ module.exports = {
         height: 170.0,
         blood_pressure: '118/78',
         blood_sugar: 88,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      // Sri Mulyani (Lansia)
-      {
-        patient_id: 6,
-        date: new Date('2023-10-19'),
-        weight: 62.0,
-        height: 158.0,
-        blood_pressure: '150/92',
-        blood_sugar: 128,
         created_at: new Date(),
         updated_at: new Date()
       },

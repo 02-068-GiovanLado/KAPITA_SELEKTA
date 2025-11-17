@@ -57,7 +57,7 @@ function MonitoringBayi() {
                   </span>
                 </td>
                 <td>
-                  <Link to={`/detail-pasien/${patient.id}`} className="view-detail">
+                  <Link to={`/admin/detail-pasien/${patient.id}`} className="view-detail">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <polyline points="9 18 15 12 9 6" stroke="currentColor" strokeWidth="2"/>
                     </svg>

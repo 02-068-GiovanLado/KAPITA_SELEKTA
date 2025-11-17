@@ -1,5 +1,34 @@
-const { Patient, Checkup, Alert, Immunization, Milestone, sequelize } = require('../models');
+const { Patient, Checkup, Alert, Vitamin, sequelize } = require('../models');
 const { Op } = require('sequelize');
+
+// Helper function to calculate age from birth date
+const calculateAge = (birthDate) => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
+  
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+  
+  // Adjust if the birth day hasn't occurred yet this month
+  if (today.getDate() < birth.getDate()) {
+    months--;
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+  }
+  
+  if (years > 0) {
+    return `${years} tahun ${months} bulan`;
+  } else {
+    return `${months} bulan`;
+  }
+};
 
 // GET /api/stats - Dashboard statistics
 exports.getStats = async (req, res) => {
@@ -7,7 +36,6 @@ exports.getStats = async (req, res) => {
     const totalPatients = await Patient.count();
     const totalBabies = await Patient.count({ where: { category: 'Bayi' } });
     const totalAdults = await Patient.count({ where: { category: 'Dewasa' } });
-    const totalElders = await Patient.count({ where: { category: 'Lansia' } });
     const activeAlerts = await Patient.count({
       where: {
         status: {
@@ -20,7 +48,6 @@ exports.getStats = async (req, res) => {
       totalPatients,
       totalBabies,
       totalAdults,
-      totalElders,
       activeAlerts
     });
   } catch (error) {
@@ -63,14 +90,21 @@ exports.getRecentAlerts = async (req, res) => {
   }
 };
 
-// GET /api/patients - Get all patients with optional category filter
+// GET /api/patients - Get all patients with optional category filter and name search
 exports.getAllPatients = async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, name } = req.query;
     const whereClause = {};
 
     if (category) {
       whereClause.category = category;
+    }
+
+    // Add name search with partial matching
+    if (name) {
+      whereClause.name = {
+        [Op.like]: `%${name}%`
+      };
     }
 
     const patients = await Patient.findAll({
@@ -103,13 +137,8 @@ exports.getPatientById = async (req, res) => {
           order: [['created_at', 'DESC']]
         },
         {
-          model: Immunization,
-          as: 'immunizations',
-          order: [['date', 'ASC']]
-        },
-        {
-          model: Milestone,
-          as: 'milestones',
+          model: Vitamin,
+          as: 'vitamins',
           order: [['date', 'ASC']]
         }
       ]
@@ -143,29 +172,43 @@ exports.createPatient = async (req, res) => {
       category,
       nik,
       guardian_name,
+      birth_date,
+      mother_nik,
+      child_nik,
+      family_card_number,
       status,
       checkup
     } = req.body;
 
     // Validate required fields
-    if (!name || !age || !gender || !category) {
+    if (!name || !gender || !category) {
       await transaction.rollback();
       return res.status(400).json({
-        error: 'Missing required fields: name, age, gender, category'
+        error: 'Missing required fields: name, gender, category'
       });
+    }
+
+    // Calculate age from birth_date if provided for Bayi category
+    let calculatedAge = age;
+    if (category === 'Bayi' && birth_date) {
+      calculatedAge = calculateAge(birth_date);
     }
 
     // Create patient
     const patient = await Patient.create(
       {
         name,
-        age,
+        age: calculatedAge,
         gender,
         category,
         nik,
         guardian_name,
+        birth_date,
+        mother_nik,
+        child_nik,
+        family_card_number,
         status: status || 'Stabil',
-        last_checkup_date: new Date()
+        last_checkup_date: null
       },
       { transaction }
     );
@@ -194,8 +237,7 @@ exports.createPatient = async (req, res) => {
       include: [
         { model: Checkup, as: 'checkups' },
         { model: Alert, as: 'alerts' },
-        { model: Immunization, as: 'immunizations' },
-        { model: Milestone, as: 'milestones' }
+        { model: Vitamin, as: 'vitamins' }
       ]
     });
 
@@ -205,5 +247,223 @@ exports.createPatient = async (req, res) => {
     await transaction.rollback();
     console.error('Error creating patient:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+};
+
+// POST /api/patients/:id/checkups - Add checkup for a patient
+exports.createCheckup = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { weight, height, head_circumference, blood_pressure, blood_sugar, date } = req.body;
+
+    console.log('Creating checkup for patient:', id);
+    console.log('Request body:', req.body);
+
+    // Check if patient exists
+    const patient = await Patient.findByPk(id);
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    // Create checkup
+    const checkupData = {
+      patient_id: parseInt(id),
+      date: date || new Date(),
+      weight: weight ? parseFloat(weight) : null,
+      height: height ? parseFloat(height) : null,
+      head_circumference: head_circumference ? parseFloat(head_circumference) : null,
+      blood_pressure: blood_pressure || null,
+      blood_sugar: blood_sugar ? parseInt(blood_sugar) : null
+    };
+
+    console.log('Checkup data to create:', checkupData);
+
+    const checkup = await Checkup.create(checkupData);
+
+    // Update patient's last_checkup_date
+    await patient.update({ last_checkup_date: checkup.date });
+
+    res.status(201).json({
+      message: 'Checkup created successfully',
+      checkup,
+      patient: {
+        id: patient.id,
+        name: patient.name,
+        category: patient.category
+      }
+    });
+  } catch (error) {
+    console.error('Error creating checkup:', error);
+    console.error('Error details:', error.errors);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message,
+      validationErrors: error.errors?.map(e => ({ field: e.path, message: e.message }))
+    });
+  }
+};
+
+// POST /api/patients/:id/vitamins - Create new vitamin record for a patient
+exports.createVitamin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { vitamin_name, status, date } = req.body;
+
+    console.log('Creating vitamin for patient:', id);
+    console.log('Request body:', req.body);
+
+    // Check if patient exists
+    const patient = await Patient.findByPk(id);
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    // Validate required fields
+    if (!vitamin_name || !status) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: 'vitamin_name and status are required'
+      });
+    }
+
+    // Create vitamin record
+    const vitaminData = {
+      patient_id: parseInt(id),
+      vitamin_name: vitamin_name,
+      status: status,
+      date: date || new Date()
+    };
+
+    console.log('Vitamin data to create:', vitaminData);
+
+    const vitamin = await Vitamin.create(vitaminData);
+
+    res.status(201).json({
+      message: 'Vitamin record created successfully',
+      id: vitamin.id,
+      patient_id: vitamin.patient_id,
+      vitamin_name: vitamin.vitamin_name,
+      status: vitamin.status,
+      date: vitamin.date
+    });
+  } catch (error) {
+    console.error('Error creating vitamin:', error);
+    console.error('Error details:', error.errors);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message,
+      validationErrors: error.errors?.map(e => ({ field: e.path, message: e.message }))
+    });
+  }
+};
+
+// PUT /api/patients/:id - Update patient
+exports.updatePatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const patient = await Patient.findByPk(id);
+    
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    // If birth_date is updated for a baby, recalculate age
+    if (updateData.birth_date && patient.category === 'Bayi') {
+      updateData.age = calculateAge(updateData.birth_date);
+    }
+
+    await patient.update(updateData);
+
+    res.json({
+      message: 'Patient updated successfully',
+      patient
+    });
+  } catch (error) {
+    console.error('Error updating patient:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+};
+
+// DELETE /api/patients/:id - Delete patient
+exports.deletePatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const patient = await Patient.findByPk(id);
+    
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    await patient.destroy();
+
+    res.json({
+      message: 'Patient deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting patient:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+};
+
+// PUT /api/checkups/:id - Update checkup
+exports.updateCheckup = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const checkup = await Checkup.findByPk(id);
+    
+    if (!checkup) {
+      return res.status(404).json({ error: 'Checkup not found' });
+    }
+
+    await checkup.update(updateData);
+
+    res.json({
+      message: 'Checkup updated successfully',
+      checkup
+    });
+  } catch (error) {
+    console.error('Error updating checkup:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+};
+
+// PUT /api/vitamins/:id - Update vitamin
+exports.updateVitamin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const vitamin = await Vitamin.findByPk(id);
+    
+    if (!vitamin) {
+      return res.status(404).json({ error: 'Vitamin not found' });
+    }
+
+    await vitamin.update(updateData);
+
+    res.json({
+      message: 'Vitamin updated successfully',
+      vitamin
+    });
+  } catch (error) {
+    console.error('Error updating vitamin:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 };

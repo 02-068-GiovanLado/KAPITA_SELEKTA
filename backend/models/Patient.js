@@ -38,6 +38,23 @@ Patient.init(
       type: DataTypes.STRING,
       allowNull: true
     },
+    birth_date: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    mother_nik: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    child_nik: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true
+    },
+    family_card_number: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     last_checkup_date: {
       type: DataTypes.DATE,
       allowNull: true

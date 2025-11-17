@@ -4,7 +4,7 @@ import api from '../services/api';
 import './Dashboard.css';
 
 function Dashboard() {
-  const [stats, setStats] = useState({ totalPasien: 0, totalBayi: 0, totalDewasa: 0, totalLansia: 0 });
+  const [stats, setStats] = useState({ totalPasien: 0, totalBayi: 0, totalDewasa: 0 });
   const [patients, setPatients] = useState([]);
   const [recentAlerts, setRecentAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,6 @@ function Dashboard() {
           totalPasien: statsData.totalPatients || 0,
           totalBayi: statsData.totalBabies || 0,
           totalDewasa: statsData.totalAdults || 0,
-          totalLansia: statsData.totalElders || 0,
           peringatanAktif: statsData.activeAlerts || 0
         });
         setPatients(patientsData);
@@ -108,18 +107,6 @@ function Dashboard() {
 
         <div className="stat-card">
           <div className="stat-content">
-            <div className="stat-label">Total Lansia</div>
-            <div className="stat-value">{stats.totalLansia}</div>
-          </div>
-          <div className="stat-icon purple">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-content">
             <div className="stat-label">Peringatan Aktif</div>
             <div className="stat-value">{stats.peringatanAktif}</div>
           </div>
@@ -161,7 +148,7 @@ function Dashboard() {
                     </span>
                   </td>
                   <td>
-                    <Link to={`/detail-pasien/${patient.id}`} className="view-detail">
+                    <Link to={`/admin/detail-pasien/${patient.id}`} className="view-detail">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <polyline points="9 18 15 12 9 6" stroke="currentColor" strokeWidth="2"/>
                       </svg>

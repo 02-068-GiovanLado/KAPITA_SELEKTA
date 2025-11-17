@@ -13,7 +13,7 @@
 
 .detail-content {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 400px 1fr;
   gap: 24px;
 }
 
@@ -37,13 +37,13 @@
   font-size: 16px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 14px;
 }
 
 .info-item {
@@ -69,6 +69,8 @@
   font-weight: 600;
   color: #111827;
   text-align: right;
+  max-width: 200px;
+  word-wrap: break-word;
 }
 
 .immunization-list {
