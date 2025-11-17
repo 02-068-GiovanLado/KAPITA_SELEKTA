@@ -2,8 +2,7 @@ const sequelize = require('../config/database');
 const Patient = require('./Patient');
 const Checkup = require('./Checkup');
 const Alert = require('./Alert');
-const Immunization = require('./Immunization');
-const Milestone = require('./Milestone');
+const Vitamin = require('./Vitamin');
 
 // Define associations
 Patient.hasMany(Checkup, {
@@ -24,20 +23,11 @@ Alert.belongsTo(Patient, {
   as: 'patient'
 });
 
-Patient.hasMany(Immunization, {
+Patient.hasMany(Vitamin, {
   foreignKey: 'patient_id',
-  as: 'immunizations'
+  as: 'vitamins'
 });
-Immunization.belongsTo(Patient, {
-  foreignKey: 'patient_id',
-  as: 'patient'
-});
-
-Patient.hasMany(Milestone, {
-  foreignKey: 'patient_id',
-  as: 'milestones'
-});
-Milestone.belongsTo(Patient, {
+Vitamin.belongsTo(Patient, {
   foreignKey: 'patient_id',
   as: 'patient'
 });
@@ -47,6 +37,5 @@ module.exports = {
   Patient,
   Checkup,
   Alert,
-  Immunization,
-  Milestone
+  Vitamin
 };

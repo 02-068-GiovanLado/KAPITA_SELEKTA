@@ -1,0 +1,32 @@
+node_modules
+/.pnp
+.pnp.js
+
+/coverage
+
+/build
+
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backend specific
+backend/.env
+backend/node_modules
+
+# Frontend specific
+frontend/.env
+frontend/node_modules
+frontend/build
+backend/.env.production
+frontend/.env.production
+*.pem
+*.key
+*.crt
